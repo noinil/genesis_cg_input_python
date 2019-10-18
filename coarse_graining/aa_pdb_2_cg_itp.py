@@ -1942,7 +1942,7 @@ def pdb_2_top(args):
     # 
     # =========================================================================
 
-    if gen_pwmcos_itp
+    if gen_pwmcos_itp:
         do_output_top    = False
         do_output_itp    = False
         do_output_gro    = False
@@ -1952,14 +1952,12 @@ def pdb_2_top(args):
         do_output_itp    = True
         do_output_gro    = True
         do_output_pwmcos = False
-    end
 
-    if do_output_sequence
+    if do_output_sequence:
         do_output_top    = False
         do_output_itp    = False
         do_output_gro    = False
         do_output_pwmcos = False
-    end
 
 
     i_step += 1
@@ -1969,243 +1967,214 @@ def pdb_2_top(args):
     # -------------------------------------------------------------------
     #        top ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # -------------------------------------------------------------------
-    if do_output_top
+    if do_output_top:
         # ---------------
         #        filename
         # ---------------
-        top_name = pdb_name[1:end-4] * "_cg.top"
+        top_name = pdb_name[:-4] + "_cg.top"
         top_file = open(top_name, "w")
 
-        itp_name = pdb_name[1:end-4] * "_cg.itp"
-        itp_system_name = pdb_name[1:end-4]
+        itp_name = pdb_name[:-4] + "_cg.itp"
+        itp_system_name = pdb_name[:-4]
 
-        write(top_file, "; atom types for coarse-grained models\n")
-        write(top_file, "#include \"./lib/atom_types.itp\" \n")
-        if num_chain_pro > 0
-            write(top_file, "; AICG2+ flexible local angle parameters \n")
-            write(top_file, "#include \"./lib/flexible_local_angle.itp\" \n")
-            write(top_file, "; AICG2+ flexible local dihedral parameters \n")
-            write(top_file, "#include \"./lib/flexible_local_dihedral.itp\" \n")
-        end
-        write(top_file, "\n")
+        top_file.write("; atom types for coarse-grained models\n")
+        top_file.write("#include \"./lib/atom_types.itp\" \n")
+        if num_chain_pro > 0:
+            top_file.write("; AICG2+ flexible local angle parameters \n")
+            top_file.write("#include \"./lib/flexible_local_angle.itp\" \n")
+            top_file.write("; AICG2+ flexible local dihedral parameters \n")
+            top_file.write("#include \"./lib/flexible_local_dihedral.itp\" \n")
+        top_file.write("\n")
 
-        write(top_file, "; Molecule topology \n")
-        @printf(top_file, "#include \"./top/%s\" \n\n", itp_name)
+        top_file.write("; Molecule topology \n")
+        top_file.write("#include \"./top/{0}\" \n\n".format(itp_name))
 
-        write(top_file, "[ system ] \n")
-        @printf(top_file, "%s \n\n", itp_system_name)
+        top_file.write("[ system ] \n")
+        top_file.write("{0} \n\n".format(itp_system_name))
 
-        write(top_file, "[ molecules ] \n")
-        @printf(top_file, "%s  1 \n\n", itp_system_name)
+        top_file.write("[ molecules ] \n")
+        top_file.write("{0}  1 \n\n".format(itp_system_name))
 
-        write(top_file, "; [ cg_ele_mol_pairs ] \n")
-        @printf(top_file, "; ON 1 - 2 : 3 - 4 \n")
-        @printf(top_file, "; OFF 1 - 1 : 3 - 3 \n\n")
+        top_file.write("; [ cg_ele_mol_pairs ] \n")
+        top_file.write("; ON 1 - 2 : 3 - 4 \n")
+        top_file.write("; OFF 1 - 1 : 3 - 3 \n\n")
 
-        write(top_file, "; [ pwmcos_mol_pairs ] \n")
-        @printf(top_file, "; ON 1 - 2 : 3 - 4 \n")
-        @printf(top_file, "; OFF 1 - 1 : 3 - 3 \n\n")
-    end
+        top_file.write("; [ pwmcos_mol_pairs ] \n")
+        top_file.write("; ON 1 - 2 : 3 - 4 \n")
+        top_file.write("; OFF 1 - 1 : 3 - 3 \n\n")
 
 
     # -------------------------------------------------------------------
     #        itp ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # -------------------------------------------------------------------
-    if do_output_itp
+    if do_output_itp:
         itp_mol_head     = "[ moleculetype ]\n"
-        itp_mol_comm     = format(";{1:15s} {2:6s}\n", "name", "nrexcl")
-        itp_mol_line     = "{1:<16} {2:>6d}\n"
+        itp_mol_comm     = ";{0:15s} {1:6s}\n".format( "name", "nrexcl" )
+        itp_mol_line     = "{0:<16} {1:>6d}\n"
 
         itp_atm_head     = "[ atoms ]\n"
-        itp_atm_comm     = format(";{:>9}{:>5}{:>10}{:>5}{:>5}{:>5} {:>8} {:>8}\n", "nr", "type", "resnr", "res", "atom", "cg", "charge", "mass")
+        itp_atm_comm     = ";{:>9}{:>5}{:>10}{:>5}{:>5}{:>5} {:>8} {:>8}\n".format("nr", "type", "resnr", "res", "atom", "cg", "charge", "mass")
         itp_atm_line     = "{:>10d}{:>5}{:>10d}{:>5}{:>5}{:>5d} {:>8.3f} {:>8.3f}\n"
 
         itp_bnd_head     = "[ bonds ]\n"
-        itp_bnd_comm     = format(";{:>9}{:>10}{:>5}{:>18}{:>18}\n", "i", "j", "f", "eq", "coef")
+        itp_bnd_comm     = ";{:>9}{:>10}{:>5}{:>18}{:>18}\n".format("i", "j", "f", "eq", "coef")
         itp_bnd_line     = "{:>10d}{:>10d}{:>5d}{:>18.4E}{:>18.4E}\n"
 
         itp_13_head      = "[ angles ] ; AICG2+ 1-3 interaction\n"
-        itp_13_comm      = format(";{:>9}{:>10}{:>10}{:>5}{:>15}{:>15}{:>15}\n", "i", "j", "k", "f", "eq", "coef", "w")
+        itp_13_comm      = ";{:>9}{:>10}{:>10}{:>5}{:>15}{:>15}{:>15}\n".format("i", "j", "k", "f", "eq", "coef", "w")
         itp_13_line      = "{:>10d}{:>10d}{:>10d}{:>5d}{:>15.4E}{:>15.4E}{:>15.4E}\n"
 
         itp_ang_f_head   = "[ angles ] ; AICG2+ flexible local interaction\n"
-        itp_ang_f_comm   = format(";{:>9}{:>10}{:>10}{:>5}\n", "i", "j", "k", "f")
+        itp_ang_f_comm   = ";{:>9}{:>10}{:>10}{:>5}\n".format("i", "j", "k", "f")
         itp_ang_f_line   = "{:>10d}{:>10d}{:>10d}{:>5d}\n"
 
         itp_ang_head     = "[ angles ] ; \n"
-        itp_ang_comm     = format(";{:>9}{:>10}{:>10}{:>5}{:>18}{:>18} \n", "i", "j", "k", "f", "eq", "coef")
+        itp_ang_comm     = ";{:>9}{:>10}{:>10}{:>5}{:>18}{:>18} \n".format("i", "j", "k", "f", "eq", "coef")
         itp_ang_line     = "{:>10d}{:>10d}{:>10d}{:>5d}{:>18.4E}{:>18.4E}\n"
 
         itp_dih_P_head   = "[ dihedrals ] ; periodic dihedrals\n"
-        itp_dih_P_comm   = format(";{:>9}{:>10}{:>10}{:>10}{:>5}{:>18}{:>18}{:>5}\n", "i", "j", "k", "l", "f", "eq", "coef", "n")
+        itp_dih_P_comm   = ";{:>9}{:>10}{:>10}{:>10}{:>5}{:>18}{:>18}{:>5}\n".format("i", "j", "k", "l", "f", "eq", "coef", "n")
         itp_dih_P_line   = "{:>10d}{:>10d}{:>10d}{:>10d}{:>5d}{:>18.4E}{:>18.4E}{:>5d}\n"
 
         itp_dih_G_head   = "[ dihedrals ] ; Gaussian dihedrals\n"
-        itp_dih_G_comm   = format(";{:>9}{:>10}{:>10}{:>10}{:>5}{:>15}{:>15}{:>15}\n", "i", "j", "k", "l", "f", "eq", "coef", "w")
+        itp_dih_G_comm   = ";{:>9}{:>10}{:>10}{:>10}{:>5}{:>15}{:>15}{:>15}\n".format("i", "j", "k", "l", "f", "eq", "coef", "w")
         itp_dih_G_line   = "{:>10d}{:>10d}{:>10d}{:>10d}{:>5d}{:>15.4E}{:>15.4E}{:>15.4E}\n"
 
         itp_dih_F_head   = "[ dihedrals ] ; AICG2+ flexible local interation\n"
-        itp_dih_F_comm   = format(";{:>9}{:>10}{:>10}{:>10}{:>5}\n", "i", "j", "k", "l", "f")
+        itp_dih_F_comm   = ";{:>9}{:>10}{:>10}{:>10}{:>5}\n".format("i", "j", "k", "l", "f")
         itp_dih_F_line   = "{:>10d}{:>10d}{:>10d}{:>10d}{:>5d}\n"
 
         itp_contact_head = "[ pairs ] ; Go-type native contact\n"
-        itp_contact_comm = format(";{:>9}{:>10}{:>10}{:>15}{:>15}\n", "i", "j", "f", "eq", "coef")
+        itp_contact_comm = ";{:>9}{:>10}{:>10}{:>15}{:>15}\n".format("i", "j", "f", "eq", "coef")
         itp_contact_line = "{:>10d}{:>10d}{:>10d}{:>15.4E}{:>15.4E}\n"
 
         itp_exc_head     = "[ exclusions ] ; Genesis exclusion list\n"
-        itp_exc_comm     = format(";{:>9}{:>10}\n", "i", "j")
+        itp_exc_comm     = ";{:>9}{:>10}\n".format("i", "j")
         itp_exc_line     = "{:>10d}{:>10d}\n"
 
         # ---------------
         #        filename
         # ---------------
-        itp_name = pdb_name[1:end-4] * "_cg.itp"
+        itp_name = pdb_name[:-4] + "_cg.itp"
         itp_file = open(itp_name, "w")
 
         # --------------------
         # Writing CG particles
         # --------------------
         # write molecule type information
-        itp_system_name = pdb_name[1:end-4]
-        write(itp_file, itp_mol_head)
-        write(itp_file, itp_mol_comm)
-        printfmt(itp_file, itp_mol_line, itp_system_name, MOL_NR_EXCL)
-        write(itp_file,"\n")
+        itp_system_name = pdb_name[:-4]
+        itp_file.write(itp_mol_head)
+        itp_file.write(itp_mol_comm)
+        itp_file.write(itp_mol_line.format(itp_system_name, MOL_NR_EXCL))
+        itp_file.write("\n")
 
         # -----------------------
         #               [ atoms ]
         # -----------------------
 
-        write(itp_file, itp_atm_head)
-        write(itp_file, itp_atm_comm)
-        for i_bead in range(1, cg_num_particles + 1):
-            printfmt(itp_file,
-                     itp_atm_line,
-                     i_bead,
-                     cg_bead_type[i_bead],
-                     cg_resid_index[i_bead],
-                     cg_resid_name[i_bead],
-                     cg_bead_name[i_bead],
-                     AICG_ATOM_FUNC_NR,
-                     cg_bead_charge[i_bead],
-                     cg_bead_mass[i_bead])
-        end
-        write(itp_file,"\n")
+        itp_file.write(itp_atm_head)
+        itp_file.write(itp_atm_comm)
+        for i_bead in range(cg_num_particles):
+            itp_file.write(itp_atm_line.format(i_bead,
+                                               cg_bead_type   [i_bead],
+                                               cg_resid_index [i_bead],
+                                               cg_resid_name  [i_bead],
+                                               cg_bead_name   [i_bead],
+                                               AICG_ATOM_FUNC_NR,
+                                               cg_bead_charge [i_bead],
+                                               cg_bead_mass   [i_bead]))
+        itp_file.write("\n")
 
         # ----------------
         #        [ bonds ]
         # ----------------
 
-        if len(top_cg_pro_bonds) + len(top_cg_DNA_bonds) + len(top_cg_RNA_bonds) > 0
-            write(itp_file, itp_bnd_head)
-            write(itp_file, itp_bnd_comm)
+        if len(top_cg_pro_bonds) + len(top_cg_DNA_bonds) + len(top_cg_RNA_bonds) > 0:
+            itp_file.write(itp_bnd_head)
+            itp_file.write(itp_bnd_comm)
 
             # AICG2+ bonds
-            for i_bond in range(1, len(top_cg_pro_bonds) + 1):
-                printfmt(itp_file,
-                         itp_bnd_line,
-                         top_cg_pro_bonds[i_bond][1],
-                         top_cg_pro_bonds[i_bond][1] + 1,
+            for i_bond in range(len(top_cg_pro_bonds)):
+                itp_file.write(
+                         itp_bnd_line.format(
+                         top_cg_pro_bonds[i_bond][0],
+                         top_cg_pro_bonds[i_bond][0] + 1,
                          AICG_BOND_FUNC_TYPE,
-                         top_cg_pro_bonds[i_bond][2] * 0.1,
-                         AICG_BOND_K)
-            end
+                         top_cg_pro_bonds[i_bond][1] * 0.1,
+                         AICG_BOND_K))
 
             # 3SPN.2C bonds
-            for i_bond in range(1, len(top_cg_DNA_bonds) + 1):
-                printfmt(itp_file,
-                         itp_bnd_line,
-                         top_cg_DNA_bonds[i_bond][1],
-                         top_cg_DNA_bonds[i_bond][2],
-                         DNA3SPN_BOND_FUNC4_TYPE,
-                         top_cg_DNA_bonds[i_bond][3] * 0.1,
-                         DNA3SPN_BOND_K_2)
-            end
+            for i_bond in range(len(top_cg_DNA_bonds)):
+                itp_file.write(itp_bnd_line.format(top_cg_DNA_bonds[i_bond][0],
+                                                   top_cg_DNA_bonds[i_bond][1],
+                                                   DNA3SPN_BOND_FUNC4_TYPE,
+                                                   top_cg_DNA_bonds[i_bond][2] * 0.1,
+                                                   DNA3SPN_BOND_K_2))
 
             # Structure-based RNA bonds
-            for i_bond in range(1, len(top_cg_RNA_bonds) + 1):
-                printfmt(itp_file,
-                         itp_bnd_line,
-                         top_cg_RNA_bonds[i_bond][1],
-                         top_cg_RNA_bonds[i_bond][2],
-                         RNA_BOND_FUNC_TYPE,
-                         top_cg_RNA_bonds[i_bond][3] * 0.1,
-                         top_cg_RNA_bonds[i_bond][4])
-            end
-            write(itp_file, "\n")
+            for i_bond in range(len(top_cg_RNA_bonds)):
+                itp_file.write(itp_bnd_line.format(top_cg_RNA_bonds[i_bond][0],
+                                                   top_cg_RNA_bonds[i_bond][1],
+                                                   RNA_BOND_FUNC_TYPE,
+                                                   top_cg_RNA_bonds[i_bond][2] * 0.1,
+                                                   top_cg_RNA_bonds[i_bond][3]))
+            itp_file.write("\n")
 
-        end
 
         # -----------------
         #        [ angles ]
         # -----------------
 
         # AICG2+ 1-3
-        if len(top_cg_pro_aicg13) > 0
-            write(itp_file, itp_13_head)
-            write(itp_file, itp_13_comm)
-            for i_13 in range(1, len(top_cg_pro_aicg13) + 1):
-                printfmt(itp_file,
-                         itp_13_line,
-                         top_cg_pro_aicg13[i_13][1],
-                         top_cg_pro_aicg13[i_13][1] + 1,
-                         top_cg_pro_aicg13[i_13][1] + 2,
-                         AICG_ANG_G_FUNC_TYPE,
-                         top_cg_pro_aicg13[i_13][2] * 0.1,
-                         param_cg_pro_e_13[i_13] * CAL2JOU,
-                         AICG_13_SIGMA)
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_pro_aicg13) > 0:
+            itp_file.write(itp_13_head)
+            itp_file.write(itp_13_comm)
+            for i_13 in range(len(top_cg_pro_aicg13)):
+                itp_file.write(itp_13_line.format(top_cg_pro_aicg13[i_13][0],
+                                                  top_cg_pro_aicg13[i_13][0] + 1,
+                                                  top_cg_pro_aicg13[i_13][0] + 2,
+                                                  AICG_ANG_G_FUNC_TYPE,
+                                                  top_cg_pro_aicg13[i_13][1] * 0.1,
+                                                  param_cg_pro_e_13[i_13] * CAL2JOU,
+                                                  AICG_13_SIGMA))
+            itp_file.write("\n")
 
         # AICG2+ flexible
-        if len(top_cg_pro_angles) > 0
-            write(itp_file, itp_ang_f_head)
-            write(itp_file, itp_ang_f_comm)
-            for i_ang in range(1, len(top_cg_pro_angles) + 1):
-                printfmt(itp_file,
-                         itp_ang_f_line,
-                         top_cg_pro_angles[i_ang],
-                         top_cg_pro_angles[i_ang] + 1,
-                         top_cg_pro_angles[i_ang] + 2,
-                         AICG_ANG_F_FUNC_TYPE)
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_pro_angles) > 0:
+            itp_file.write(itp_ang_f_head)
+            itp_file.write(itp_ang_f_comm)
+            for i_ang in range(len(top_cg_pro_angles)):
+                itp_file.write(itp_ang_f_line.format(top_cg_pro_angles[i_ang],
+                                                     top_cg_pro_angles[i_ang] + 1,
+                                                     top_cg_pro_angles[i_ang] + 2,
+                                                     AICG_ANG_F_FUNC_TYPE))
+            itp_file.write("\n")
 
         # 3SPN.2C angles
-        if len(top_cg_DNA_angles) > 0
-            write(itp_file, itp_ang_head)
-            write(itp_file, itp_ang_comm)
-            for i_ang in range(1, len(top_cg_DNA_angles) + 1):
-                printfmt(itp_file,
-                         itp_ang_line,
-                         top_cg_DNA_angles[i_ang][1],
-                         top_cg_DNA_angles[i_ang][2],
-                         top_cg_DNA_angles[i_ang][3],
-                         DNA3SPN_ANG_FUNC_TYPE,
-                         top_cg_DNA_angles[i_ang][4],
-                         top_cg_DNA_angles[i_ang][5])
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_DNA_angles) > 0:
+            itp_file.write(itp_ang_head)
+            itp_file.write(itp_ang_comm)
+            for i_ang in range(len(top_cg_DNA_angles)):
+                itp_file.write(itp_ang_line.format(top_cg_DNA_angles[i_ang][0],
+                                                   top_cg_DNA_angles[i_ang][1],
+                                                   top_cg_DNA_angles[i_ang][2],
+                                                   DNA3SPN_ANG_FUNC_TYPE,
+                                                   top_cg_DNA_angles[i_ang][3],
+                                                   top_cg_DNA_angles[i_ang][4]))
+            itp_file.write("\n")
 
         # RNA structure-based angles
-        if len(top_cg_RNA_angles) > 0
-            write(itp_file, itp_ang_head)
-            write(itp_file, itp_ang_comm)
-            for i_ang in range(1, len(top_cg_RNA_angles) + 1):
-                printfmt(itp_file,
-                         itp_ang_line,
-                         top_cg_RNA_angles[i_ang][1],
-                         top_cg_RNA_angles[i_ang][2],
-                         top_cg_RNA_angles[i_ang][3],
-                         RNA_ANG_FUNC_TYPE,
-                         top_cg_RNA_angles[i_ang][4],
-                         top_cg_RNA_angles[i_ang][5])
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_RNA_angles) > 0:
+            itp_file.write(itp_ang_head)
+            itp_file.write(itp_ang_comm)
+            for i_ang in range(len(top_cg_RNA_angles)):
+                itp_file.write(itp_ang_line.format(top_cg_RNA_angles[i_ang][0],
+                                                   top_cg_RNA_angles[i_ang][1],
+                                                   top_cg_RNA_angles[i_ang][2],
+                                                   RNA_ANG_FUNC_TYPE,
+                                                   top_cg_RNA_angles[i_ang][3],
+                                                   top_cg_RNA_angles[i_ang][4]))
+            itp_file.write("\n")
 
 
         # --------------------
@@ -2213,108 +2182,85 @@ def pdb_2_top(args):
         # --------------------
 
         # AICG2+ Gaussian dihedrals
-        if len(top_cg_pro_aicg14) > 0
-            write(itp_file, itp_dih_G_head)
-            write(itp_file, itp_dih_G_comm)
-            for i_dih in range(1, len(top_cg_pro_aicg14) + 1):
-                printfmt(itp_file,
-                         itp_dih_G_line,
-                         top_cg_pro_aicg14[i_dih][1],
-                         top_cg_pro_aicg14[i_dih][1] + 1,
-                         top_cg_pro_aicg14[i_dih][1] + 2,
-                         top_cg_pro_aicg14[i_dih][1] + 3,
-                         AICG_DIH_G_FUNC_TYPE,
-                         top_cg_pro_aicg14[i_dih][2],
-                         param_cg_pro_e_14[i_dih] * CAL2JOU,
-                         AICG_14_SIGMA)
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_pro_aicg14) > 0:
+            itp_file.write(itp_dih_G_head)
+            itp_file.write(itp_dih_G_comm)
+            for i_dih in range(len(top_cg_pro_aicg14)):
+                itp_file.write(itp_dih_G_line.format(top_cg_pro_aicg14[i_dih][0],
+                                                     top_cg_pro_aicg14[i_dih][0] + 1,
+                                                     top_cg_pro_aicg14[i_dih][0] + 2,
+                                                     top_cg_pro_aicg14[i_dih][0] + 3,
+                                                     AICG_DIH_G_FUNC_TYPE,
+                                                     top_cg_pro_aicg14[i_dih][1],
+                                                     param_cg_pro_e_14[i_dih] * CAL2JOU,
+                                                     AICG_14_SIGMA))
+            itp_file.write("\n")
 
         # AICG2+ flexible dihedrals
-        if len(top_cg_pro_dihedrals) > 0
-            write(itp_file, itp_dih_F_head)
-            write(itp_file, itp_dih_F_comm)
-            for i_dih in range(1, len(top_cg_pro_dihedrals) + 1):
-                printfmt(itp_file,
-                         itp_dih_F_line,
-                         top_cg_pro_dihedrals[i_dih],
-                         top_cg_pro_dihedrals[i_dih] + 1,
-                         top_cg_pro_dihedrals[i_dih] + 2,
-                         top_cg_pro_dihedrals[i_dih] + 3,
-                         AICG_DIH_F_FUNC_TYPE)
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_pro_dihedrals) > 0:
+            itp_file.write(itp_dih_F_head)
+            itp_file.write(itp_dih_F_comm)
+            for i_dih in range(len(top_cg_pro_dihedrals)):
+                itp_file.write(itp_dih_F_line.format(top_cg_pro_dihedrals[i_dih],
+                                                     top_cg_pro_dihedrals[i_dih] + 1,
+                                                     top_cg_pro_dihedrals[i_dih] + 2,
+                                                     top_cg_pro_dihedrals[i_dih] + 3,
+                                                     AICG_DIH_F_FUNC_TYPE))
+            itp_file.write("\n")
 
         # 3SPN.2C Gaussian dihedrals
-        if len(top_cg_DNA_dih_Gaussian) > 0
-            write(itp_file, itp_dih_G_head)
-            write(itp_file, itp_dih_G_comm)
-            for i_dih in range(1, len(top_cg_DNA_dih_Gaussian) + 1):
-                printfmt(itp_file,
-                         itp_dih_G_line,
-                         top_cg_DNA_dih_Gaussian[i_dih][1],
-                         top_cg_DNA_dih_Gaussian[i_dih][2],
-                         top_cg_DNA_dih_Gaussian[i_dih][3],
-                         top_cg_DNA_dih_Gaussian[i_dih][4],
-                         DNA3SPN_DIH_G_FUNC_TYPE,
-                         top_cg_DNA_dih_Gaussian[i_dih][5],
-                         DNA3SPN_DIH_G_K,
-                         DNA3SPN_DIH_G_SIGMA)
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_DNA_dih_Gaussian) > 0:
+            itp_file.write(itp_dih_G_head)
+            itp_file.write(itp_dih_G_comm)
+            for i_dih in range(len(top_cg_DNA_dih_Gaussian)):
+                itp_file.write(itp_dih_G_line.format(top_cg_DNA_dih_Gaussian[i_dih][0],
+                                                     top_cg_DNA_dih_Gaussian[i_dih][1],
+                                                     top_cg_DNA_dih_Gaussian[i_dih][2],
+                                                     top_cg_DNA_dih_Gaussian[i_dih][3],
+                                                     DNA3SPN_DIH_G_FUNC_TYPE,
+                                                     top_cg_DNA_dih_Gaussian[i_dih][4],
+                                                     DNA3SPN_DIH_G_K,
+                                                     DNA3SPN_DIH_G_SIGMA))
+            itp_file.write("\n")
 
         # 3SPN.2C Periodic dihedrals
-        if len(top_cg_DNA_dih_periodic) > 0
-            write(itp_file, itp_dih_P_head)
-            write(itp_file, itp_dih_P_comm)
-            for i_dih in range(1, len(top_cg_DNA_dih_periodic) + 1):
-                printfmt(itp_file,
-                         itp_dih_P_line,
-                         top_cg_DNA_dih_periodic[i_dih][1],
-                         top_cg_DNA_dih_periodic[i_dih][2],
-                         top_cg_DNA_dih_periodic[i_dih][3],
-                         top_cg_DNA_dih_periodic[i_dih][4],
-                         DNA3SPN_DIH_P_FUNC_TYPE,
-                         top_cg_DNA_dih_periodic[i_dih][5],
-                         DNA3SPN_DIH_P_K,
-                         DNA3SPN_DIH_P_FUNC_PERI)
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_DNA_dih_periodic) > 0:
+            itp_file.write(itp_dih_P_head)
+            itp_file.write(itp_dih_P_comm)
+            for i_dih in range(len(top_cg_DNA_dih_periodic)):
+                itp_file.write(itp_dih_P_line.format(top_cg_DNA_dih_periodic[i_dih][0],
+                                                     top_cg_DNA_dih_periodic[i_dih][1],
+                                                     top_cg_DNA_dih_periodic[i_dih][2],
+                                                     top_cg_DNA_dih_periodic[i_dih][3],
+                                                     DNA3SPN_DIH_P_FUNC_TYPE,
+                                                     top_cg_DNA_dih_periodic[i_dih][4],
+                                                     DNA3SPN_DIH_P_K,
+                                                     DNA3SPN_DIH_P_FUNC_PERI))
+            itp_file.write("\n")
 
         # RNA structure-based Periodic dihedrals
-        if len(top_cg_RNA_dihedrals) > 0
-            write(itp_file, itp_dih_P_head)
-            write(itp_file, itp_dih_P_comm)
-            for i_dih in range(1, len(top_cg_RNA_dihedrals) + 1):
-                printfmt(itp_file,
-                         itp_dih_P_line,
-                         top_cg_RNA_dihedrals[i_dih][1],
-                         top_cg_RNA_dihedrals[i_dih][2],
-                         top_cg_RNA_dihedrals[i_dih][3],
-                         top_cg_RNA_dihedrals[i_dih][4],
-                         RNA_DIH_FUNC_TYPE,
-                         top_cg_RNA_dihedrals[i_dih][5] - 180,
-                         top_cg_RNA_dihedrals[i_dih][6],
-                         1)
-            end
-            for i_dih in range(1, len(top_cg_RNA_dihedrals) + 1):
-                printfmt(itp_file,
-                         itp_dih_P_line,
-                         top_cg_RNA_dihedrals[i_dih][1],
-                         top_cg_RNA_dihedrals[i_dih][2],
-                         top_cg_RNA_dihedrals[i_dih][3],
-                         top_cg_RNA_dihedrals[i_dih][4],
-                         RNA_DIH_FUNC_TYPE,
-                         3 * top_cg_RNA_dihedrals[i_dih][5] - 180,
-                         top_cg_RNA_dihedrals[i_dih][6] / 2,
-                         3)
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_RNA_dihedrals) > 0:
+            itp_file.write(itp_dih_P_head)
+            itp_file.write(itp_dih_P_comm)
+            for i_dih in range(len(top_cg_RNA_dihedrals)):
+                itp_file.write(itp_dih_P_line.format(top_cg_RNA_dihedrals[i_dih][0],
+                                                     top_cg_RNA_dihedrals[i_dih][1],
+                                                     top_cg_RNA_dihedrals[i_dih][2],
+                                                     top_cg_RNA_dihedrals[i_dih][3],
+                                                     RNA_DIH_FUNC_TYPE,
+                                                     top_cg_RNA_dihedrals[i_dih][4] - 180,
+                                                     top_cg_RNA_dihedrals[i_dih][5],
+                                                     1))
+            for i_dih in range(len(top_cg_RNA_dihedrals)):
+                itp_file.write(itp_dih_P_line.format(top_cg_RNA_dihedrals[i_dih][0],
+                                                     top_cg_RNA_dihedrals[i_dih][1],
+                                                     top_cg_RNA_dihedrals[i_dih][2],
+                                                     top_cg_RNA_dihedrals[i_dih][3],
+                                                     RNA_DIH_FUNC_TYPE,
+                                                     top_cg_RNA_dihedrals[i_dih][4] * 3 - 180,
+                                                     top_cg_RNA_dihedrals[i_dih][5] * 0.5,
+                                                     3))
+            itp_file.write("\n")
 
 
         # ----------------
@@ -2322,70 +2268,52 @@ def pdb_2_top(args):
         # ----------------
 
         # write protein Go-type native contacts
-        if len(top_cg_pro_aicg_contact) > 0
-            write(itp_file, itp_contact_head)
-            write(itp_file, itp_contact_comm)
-            for i_c in range(1, len(top_cg_pro_aicg_contact) + 1):
-                printfmt(itp_file,
-                         itp_contact_line,
-                         top_cg_pro_aicg_contact[i_c][1],
-                         top_cg_pro_aicg_contact[i_c][2],
-                         AICG_CONTACT_FUNC_TYPE,
-                         top_cg_pro_aicg_contact[i_c][3] * 0.1,
-                         param_cg_pro_e_contact[i_c] * CAL2JOU)
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_pro_aicg_contact) > 0:
+            itp_file.write(itp_contact_head)
+            itp_file.write(itp_contact_comm)
+            for i_c in range(len(top_cg_pro_aicg_contact)):
+                itp_file.write(itp_contact_line.format(top_cg_pro_aicg_contact[i_c][0],
+                                                       top_cg_pro_aicg_contact[i_c][1],
+                                                       AICG_CONTACT_FUNC_TYPE,
+                                                       top_cg_pro_aicg_contact[i_c][2] * 0.1,
+                                                       param_cg_pro_e_contact[i_c] * CAL2JOU))
+            itp_file.write("\n")
 
         # write RNA Go-type native contacts
-        if len(top_cg_RNA_base_stack) + len(top_cg_RNA_base_pair) + len(top_cg_RNA_other_contact) > 0
-            write(itp_file, itp_contact_head)
-            write(itp_file, itp_contact_comm)
-            for i_c in range(1, len(top_cg_RNA_base_stack) + 1):
-                printfmt(itp_file,
-                         itp_contact_line,
-                         top_cg_RNA_base_stack[i_c][1],
-                         top_cg_RNA_base_stack[i_c][2],
-                         RNA_CONTACT_FUNC_TYPE,
-                         top_cg_RNA_base_stack[i_c][3] * 0.1,
-                         top_cg_RNA_base_stack[i_c][4] * CAL2JOU)
-            end
-            for i_c in range(1, len(top_cg_RNA_base_pair) + 1):
-                printfmt(itp_file,
-                         itp_contact_line,
-                         top_cg_RNA_base_pair[i_c][1],
-                         top_cg_RNA_base_pair[i_c][2],
-                         RNA_CONTACT_FUNC_TYPE,
-                         top_cg_RNA_base_pair[i_c][3] * 0.1,
-                         top_cg_RNA_base_pair[i_c][4] * CAL2JOU)
-            end
-            for i_c in range(1, len(top_cg_RNA_other_contact) + 1):
-                printfmt(itp_file,
-                         itp_contact_line,
-                         top_cg_RNA_other_contact[i_c][1],
-                         top_cg_RNA_other_contact[i_c][2],
-                         RNA_CONTACT_FUNC_TYPE,
-                         top_cg_RNA_other_contact[i_c][3] * 0.1,
-                         top_cg_RNA_other_contact[i_c][4] * CAL2JOU)
-            end
-            write(itp_file, "\n")
-        end
+        if num_rna_contacts > 0:
+            itp_file.write(itp_contact_head)
+            itp_file.write(itp_contact_comm)
+            for i_c in range(len(top_cg_RNA_base_stack)):
+                itp_file.write(itp_contact_line.format(top_cg_RNA_base_stack[i_c][0],
+                                                       top_cg_RNA_base_stack[i_c][1],
+                                                       RNA_CONTACT_FUNC_TYPE,
+                                                       top_cg_RNA_base_stack[i_c][2] * 0.1,
+                                                       top_cg_RNA_base_stack[i_c][3] * CAL2JOU))
+            for i_c in range(len(top_cg_RNA_base_pair)):
+                itp_file.write(itp_contact_line.format(top_cg_RNA_base_pair[i_c][0],
+                                                       top_cg_RNA_base_pair[i_c][1],
+                                                       RNA_CONTACT_FUNC_TYPE,
+                                                       top_cg_RNA_base_pair[i_c][2] * 0.1,
+                                                       top_cg_RNA_base_pair[i_c][3] * CAL2JOU))
+            for i_c in range(len(top_cg_RNA_other_contact)):
+                itp_file.write(itp_contact_line.format(top_cg_RNA_other_contact[i_c][0],
+                                                       top_cg_RNA_other_contact[i_c][1],
+                                                       RNA_CONTACT_FUNC_TYPE,
+                                                       top_cg_RNA_other_contact[i_c][2] * 0.1,
+                                                       top_cg_RNA_other_contact[i_c][3] * CAL2JOU))
+            itp_file.write("\n")
 
         # write protein-RNA native contacts
-        if len(top_cg_pro_RNA_contact) > 0
-            write(itp_file, itp_contact_head)
-            write(itp_file, itp_contact_comm)
-            for i_c in range(1, len(top_cg_pro_RNA_contact) + 1):
-                printfmt(itp_file,
-                         itp_contact_line,
-                         top_cg_pro_RNA_contact[i_c][1],
-                         top_cg_pro_RNA_contact[i_c][2],
-                         RNP_CONTACT_FUNC_TYPE,
-                         top_cg_pro_RNA_contact[i_c][3] * 0.1,
-                         top_cg_pro_RNA_contact[i_c][4] * CAL2JOU)
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_pro_RNA_contact) > 0:
+            itp_file.write(itp_contact_head)
+            itp_file.write(itp_contact_comm)
+            for i_c in range(len(top_cg_pro_RNA_contact)):
+                itp_file.write(itp_contact_line.format(top_cg_pro_RNA_contact[i_c][0],
+                                                       top_cg_pro_RNA_contact[i_c][1],
+                                                       RNP_CONTACT_FUNC_TYPE,
+                                                       top_cg_pro_RNA_contact[i_c][2] * 0.1,
+                                                       top_cg_pro_RNA_contact[i_c][3] * CAL2JOU))
+            itp_file.write("\n")
 
 
         # ---------------------
@@ -2393,67 +2321,47 @@ def pdb_2_top(args):
         # ---------------------
 
         # write Protein exclusion list
-        if len(top_cg_pro_aicg_contact) > 0
-            write(itp_file, itp_exc_head)
-            write(itp_file, itp_exc_comm)
-            for i_c in range(1, len(top_cg_pro_aicg_contact) + 1):
-                printfmt(itp_file,
-                         itp_exc_line,
-                         top_cg_pro_aicg_contact[i_c][1],
-                         top_cg_pro_aicg_contact[i_c][2])
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_pro_aicg_contact) > 0:
+            itp_file.write(itp_exc_head)
+            itp_file.write(itp_exc_comm)
+            for i_c in range(len(top_cg_pro_aicg_contact)):
+                itp_file.write(itp_exc_line.format(top_cg_pro_aicg_contact[i_c][0],
+                                                   top_cg_pro_aicg_contact[i_c][1]))
+            itp_file.write("\n")
 
         # write RNA exclusion list
-        if len(top_cg_RNA_base_stack) + len(top_cg_RNA_base_pair) + len(top_cg_RNA_other_contact) > 0
-            write(itp_file, itp_exc_head)
-            write(itp_file, itp_exc_comm)
-            for i_c in range(1, len(top_cg_RNA_base_stack) + 1):
-                printfmt(itp_file,
-                         itp_exc_line,
-                         top_cg_RNA_base_stack[i_c][1],
-                         top_cg_RNA_base_stack[i_c][2])
-            end
-            for i_c in range(1, len(top_cg_RNA_base_pair) + 1):
-                printfmt(itp_file,
-                         itp_exc_line,
-                         top_cg_RNA_base_pair[i_c][1],
-                         top_cg_RNA_base_pair[i_c][2])
-            end
-            for i_c in range(1, len(top_cg_RNA_other_contact) + 1):
-                printfmt(itp_file,
-                         itp_exc_line,
-                         top_cg_RNA_other_contact[i_c][1],
-                         top_cg_RNA_other_contact[i_c][2])
-            end
-            write(itp_file, "\n")
-        end
+        if num_rna_contacts > 0:
+            itp_file.write(itp_exc_head)
+            itp_file.write(itp_exc_comm)
+            for i_c in range(len(top_cg_RNA_base_stack)):
+                itp_file.write(itp_exc_line.format(top_cg_RNA_base_stack[i_c][0],
+                                                   top_cg_RNA_base_stack[i_c][1]))
+            for i_c in range(len(top_cg_RNA_base_pair)):
+                itp_file.write(itp_exc_line.format(top_cg_RNA_base_pair[i_c][0],
+                                                   top_cg_RNA_base_pair[i_c][1]))
+            for i_c in range(len(top_cg_RNA_other_contact)):
+                itp_file.write(itp_exc_line.format(top_cg_RNA_other_contact[i_c][0],
+                                                   top_cg_RNA_other_contact[i_c][1]))
+            itp_file.write("\n")
 
         # write protein-RNA exclusion contacts
-        if len(top_cg_pro_RNA_contact) > 0
-            write(itp_file, itp_exc_head)
-            write(itp_file, itp_exc_comm)
-            for i_c in range(1, len(top_cg_pro_RNA_contact) + 1):
-                printfmt(itp_file,
-                         itp_exc_line,
-                         top_cg_pro_RNA_contact[i_c][1],
-                         top_cg_pro_RNA_contact[i_c][2])
-            end
-            write(itp_file, "\n")
-        end
+        if len(top_cg_pro_RNA_contact) > 0:
+            itp_file.write(itp_exc_head)
+            itp_file.write(itp_exc_comm)
+            for i_c in range(len(top_cg_pro_RNA_contact)):
+                itp_file.write(itp_exc_line.format(top_cg_pro_RNA_contact[i_c][0],
+                                                   top_cg_pro_RNA_contact[i_c][1]))
+            itp_file.write("\n")
 
 
-
-        close(itp_file)
+        itp_file.close()
         print(">           ... .itp: DONE!")
        
-    end
 
     # ------------------------------------------------------------
     # gro ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # ------------------------------------------------------------
-    if do_output_gro
+    if do_output_gro:
         # HEAD: time in the unit of ps
         GRO_HEAD_STR  = "{}, t= {:>16.3f} \n"
         # ATOM NUM: free format int
@@ -2462,189 +2370,163 @@ def pdb_2_top(args):
         GRO_ATOM_LINE = "{:>5d}{:>5}{:>5}{:>5d} {:>8.4f} {:>8.4f} {:>8.4f} {:>8.4f} {:>8.4f} {:>8.4f} \n"
         GRO_BOX_LINE  = "{:>15.4f}{:>15.4f}{:>15.4f} \n\n"
 
-        gro_name = pdb_name[1:end-4] * "_cg.gro"
+        gro_name = pdb_name[:-4] + "_cg.gro"
         gro_file = open(gro_name, "w")
 
-        printfmt(gro_file, GRO_HEAD_STR, "CG model for GENESIS ", 0)
-        printfmt(gro_file, GRO_ATOM_NUM, cg_num_particles)
+        gro_file.write(GRO_HEAD_STR.format("CG model for GENESIS ", 0))
+        gro_file.write(GRO_ATOM_NUM.format(cg_num_particles))
 
-        for i_bead in range(1, cg_num_particles + 1):
-            printfmt(gro_file, GRO_ATOM_LINE,
-                     cg_resid_index[i_bead],
-                     cg_resid_name[i_bead],
-                     cg_bead_name[i_bead],
-                     i_bead,
-                     cg_bead_coor[1 , i_bead] * 0.1,
-                     cg_bead_coor[2 , i_bead] * 0.1,
-                     cg_bead_coor[3 , i_bead] * 0.1,
-                     0.0, 0.0, 0.0)
-        end
-        printfmt(gro_file, GRO_BOX_LINE, 0.0, 0.0, 0.0)
+        for i_bead in range(cg_num_particles):
+            gro_file.write(GRO_ATOM_LINE.format(cg_resid_index [i_bead],
+                                                cg_resid_name  [i_bead],
+                                                cg_bead_name   [i_bead],
+                                                i_bead,
+                                                cg_bead_coor   [i_bead, 0] * 0.1,
+                                                cg_bead_coor   [i_bead, 1] * 0.1,
+                                                cg_bead_coor   [i_bead, 2] * 0.1,
+                                                0.0, 0.0, 0.0))
+        gro_file.write(GRO_BOX_LINE.format( 0.0, 0.0, 0.0 ))
 
-        close(gro_file)
+        gro_file.close()
         print(">           ... .gro: DONE!")
-    end
 
 
     # ------------------------------------------------------------
     # PWMcos ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # ------------------------------------------------------------
-    if do_output_pwmcos
-        itp_pwmcos_head = "[ pwmcos ]\n"
-        itp_pwmcos_comm     = format(";{:>5}{:>4}{:>9}{:>9}{:>9}{:>9}{:>12}{:>12}{:>12}{:>12}{:>8}{:>8}\n",
-                                     "i", "f", "r0", "theta1", "theta2", "theta3",
-                                     "ene_A", "ene_C", "ene_G", "ene_T",
-                                     "gamma", "eps'")
-        # itp_pwmcos_line = "{:>6d} {:>3d} {:>8.5f} {:>8.3f} {:>8.3f} {:>8.3f}{:>12.6f}{:>12.6f}{:>12.6f}{:>12.6f}{:>8.3f}{:>8.3f} \n"
-        itp_pwmcos_line = "%6d %3d %8.5f %8.3f %8.3f %8.3f%12.6f%12.6f%12.6f%12.6f%8.3f%8.3f \n"
+    if do_output_pwmcos:
+        itp_pwmcos_head      = "[ pwmcos ]\n"
+        itp_pwmcos_comm_temp = ";{:>5}{:>4}{:>9}{:>9}{:>9}{:>9}{:>12}{:>12}{:>12}{:>12}{:>8}{:>8}\n"
+        itp_pwmcos_comm      = itp_pwmcos_comm_temp.format("i", "f", "r0", "theta1", "theta2", "theta3",
+                                                           "ene_A", "ene_C", "ene_G", "ene_T",
+                                                           "gamma", "eps'")
+        itp_pwmcos_line = "{:>6d} {:>3d} {:>8.5f} {:>8.3f} {:>8.3f} {:>8.3f}{:>12.6f}{:>12.6f}{:>12.6f}{:>12.6f}{:>8.3f}{:>8.3f} \n"
 
-        if len( appendto_filename ) == 0
-            itp_pwmcos_name = pdb_name[1:end-4] * "_cg_pwmcos.itp_patch"
+        if len( appendto_filename ) == 0:
+            itp_pwmcos_name = pdb_name[:-4] * "_cg_pwmcos.itp_patch"
             itp_pwmcos_file = open(itp_pwmcos_name, "w")
         else:
             itp_pwmcos_name = appendto_filename
             itp_pwmcos_file = open(itp_pwmcos_name, "a")
-        end
 
-        write(itp_pwmcos_file, itp_pwmcos_head)
-        write(itp_pwmcos_file, itp_pwmcos_comm)
-        for itpterm in top_cg_pro_DNA_pwmcos
-            @printf(itp_pwmcos_file,
-                    "%6d %3d %8.5f %8.3f %8.3f %8.3f%12.6f%12.6f%12.6f%12.6f%8.3f%8.3f \n",
-                    itpterm[1],
-                    PWMCOS_FUNC_TYPE,
-                    itpterm[2] * 0.1,
-                    itpterm[3],
-                    itpterm[4],
-                    itpterm[5],
-                    itpterm[6],
-                    itpterm[7],
-                    itpterm[8],
-                    itpterm[9],
-                    pwmcos_gamma,
-                    pwmcos_epsil)
-        end
-        write(itp_pwmcos_file, "\n")
+        itp_pwmcos_file.write(itp_pwmcos_head)
+        itp_pwmcos_file.write(itp_pwmcos_comm)
+        for itpterm in top_cg_pro_DNA_pwmcos:
+            itp_pwmcos_file.write(itp_pwmcos_line.format(itpterm[0],
+                                                         PWMCOS_FUNC_TYPE,
+                                                         itpterm[1] * 0.1,
+                                                         itpterm[2],
+                                                         itpterm[3],
+                                                         itpterm[4],
+                                                         itpterm[5],
+                                                         itpterm[6],
+                                                         itpterm[7],
+                                                         itpterm[8],
+                                                         pwmcos_gamma,
+                                                         pwmcos_epsil))
+        itp_pwmcos_file.write("\n")
 
-        close(itp_pwmcos_file)
+        itp_pwmcos_file.close()
         print(">           ... ", itp_pwmcos_name, " pwmcos.itp: DONE!")
-    end
 
     # ------------------------------------------------------------
     # psf ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # ------------------------------------------------------------
-    if do_output_psf
-        psf_head_str = "PSF CMAP \n\n"
+    if do_output_psf:
+        psf_head_str   = "PSF CMAP \n\n"
         psf_title_str0 = "      3 !NTITLE \n"
         psf_title_str1 = "REMARKS PSF file created with Julia. \n"
-        psf_title_str2 = "REMARKS System: {1}  \n"
+        psf_title_str2 = "REMARKS System: {0}  \n"
         psf_title_str5 = "REMARKS ======================================== \n"
         psf_title_str6 = "       \n"
-        psf_title_str = psf_title_str0 * psf_title_str1 * psf_title_str2 * psf_title_str5 * psf_title_str6
+        psf_title_str = psf_title_str0 + psf_title_str1 + psf_title_str2 + psf_title_str5 + psf_title_str6
         psf_atom_title = " {:>6d} !NATOM \n"
-        # PSF_ATOM_LINE = " {atom_ser} {seg_id} {res_ser} {res_name} {atom_name} {atom_type}  {charge}  {mass}   0"
         psf_atom_line = " {:>6d} {:>3} {:>5d} {:>3} {:>3} {:>5}  {:>10.6f}  {:>10.6f}          0 \n"
         chain_id_set = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
 
-        psf_name = pdb_name[1:end-4] * "_cg.psf"
+        psf_name = pdb_name[:-4] + "_cg.psf"
         psf_file = open(psf_name, "w")
-        write(psf_file, psf_head_str)
-        printfmt(psf_file, psf_title_str, pdb_name[1:end-4])
-        printfmt(psf_file, psf_atom_title, cg_num_particles)
-        for i_bead in range(1, cg_num_particles + 1):
-            printfmt(psf_file,
-                     psf_atom_line,
-                     i_bead,
-                     chain_id_set[cg_chain_id[i_bead]],
-                     cg_resid_index[i_bead],
-                     cg_resid_name[i_bead],
-                     cg_bead_name[i_bead],
-                     cg_bead_type[i_bead],
-                     cg_bead_charge[i_bead],
-                     cg_bead_mass[i_bead])
-        end
-        write(psf_file,"\n")
+        psf_file.write(psf_head_str)
+        psf_file.write(psf_title_str.format( pdb_name[:-4] ))
+        psf_file.write(psf_atom_title.format( cg_num_particles ))
+        for i_bead in range(cg_num_particles):
+            psf_file.write(psf_atom_line.format(i_bead,
+                                                chain_id_set   [cg_chain_id [i_bead]],
+                                                cg_resid_index [i_bead],
+                                                cg_resid_name  [i_bead],
+                                                cg_bead_name   [i_bead],
+                                                cg_bead_type   [i_bead],
+                                                cg_bead_charge [i_bead],
+                                                cg_bead_mass   [i_bead]))
+        psf_file.write("\n")
 
-        close(psf_file)
+        psf_file.close()
         print(">           ... .psf: DONE!")
-    end
 
     # ------------------------------------------------------------
     # cgpdb ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # ------------------------------------------------------------
-    if do_output_cgpdb
-        cg_pdb_name = pdb_name[1:end-4] * "_cg.pdb"
+    if do_output_cgpdb:
+        cg_pdb_name = pdb_name[:-4] + "_cg.pdb"
         cg_pdb_file = open(cg_pdb_name, "w")
         cg_pdb_atom_line = "ATOM  {:>5d} {:>4s}{:1}{:<4s}{:1}{:>4d}{:1}   {:>8.3f}{:>8.3f}{:>8.3f}{:>6.2f}{:>6.2f}{:>10s}{:2s}{:2s} \n"
         chain_id_set = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
         tmp_chain_id = 0
-        for i_bead in range(1, cg_num_particles + 1):
-            if cg_chain_id[i_bead] > tmp_chain_id
-                if tmp_chain_id > 0
-                    write(cg_pdb_file, "TER\n")
-                end
+        for i_bead in range(cg_num_particles):
+            if cg_chain_id[i_bead] > tmp_chain_id:
+                if tmp_chain_id > 0:
+                    cg_pdb_file.write("TER\n")
                 tmp_chain_id = cg_chain_id[i_bead]
-            end
-            printfmt(cg_pdb_file,
-                     cg_pdb_atom_line,
-                     i_bead,
-                     cg_bead_name[i_bead],
-                     ' ',
-                     cg_resid_name[i_bead],
-                     chain_id_set[cg_chain_id[i_bead]],
-                     cg_resid_index[i_bead],
-                     ' ',
-                     cg_bead_coor[1 , i_bead],
-                     cg_bead_coor[2 , i_bead],
-                     cg_bead_coor[3 , i_bead],
-                     0.0,
-                     0.0,
-                     "",
-                     "",
-                     "")
-        end
-        write(cg_pdb_file,"TER\n")
-        write(cg_pdb_file,"END\n")
-        write(cg_pdb_file,"\n")
+            cg_pdb_file.write(cg_pdb_atom_line.format(i_bead,
+                                                      cg_bead_name[i_bead],
+                                                      ' ',
+                                                      cg_resid_name[i_bead],
+                                                      chain_id_set[cg_chain_id[i_bead]],
+                                                      cg_resid_index[i_bead],
+                                                      ' ',
+                                                      cg_bead_coor[i_bead, 0],
+                                                      cg_bead_coor[i_bead, 1],
+                                                      cg_bead_coor[i_bead, 2],
+                                                      0.0,
+                                                      0.0,
+                                                      "",
+                                                      "",
+                                                      ""))
+        cg_pdb_file.write("TER\n")
+        cg_pdb_file.write("END\n")
+        cg_pdb_file.write("\n")
 
-        close(cg_pdb_file)
+        cg_pdb_file.close()
         print(">           ... .pdb (CG) : DONE!")
-    end
 
     # --------------------------------------------------------------
     # show sequence ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # --------------------------------------------------------------
-    if do_output_sequence
+    if do_output_sequence:
         chain_id_set = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
-        cg_seq_name = pdb_name[1:end-4] * "_cg.fasta"
+        cg_seq_name = pdb_name[:-4] + "_cg.fasta"
         cg_seq_file = open(cg_seq_name, "w")
 
         for i_chain in range(aa_num_chain):
             chain = aa_chains[i_chain]
             mol_type = cg_chain_mol_types[i_chain]
-            printfmt(cg_seq_file,
-                     "> Chain {1} : {2} \n",
-                     chain_id_set[i_chain],
-                     MOL_TYPE_LIST[mol_type])
+            cg_seq_file.write("> Chain {1} : {2} \n".format(chain_id_set[i_chain],
+                                                            MOL_TYPE_LIST[mol_type]))
 
-            for i_res in chain.residues
+            for i_res in chain.residues:
                 res_name = aa_residues[i_res].name
-                write(cg_seq_file, RES_SHORTNAME_DICT[res_name])
-            end
+                cg_seq_file.write(RES_SHORTNAME_DICT[res_name])
 
-            write(cg_seq_file, "\n")
-        end
+            cg_seq_file.write("\n")
 
-        close(cg_seq_file)
+        cg_seq_file.close()
         print(">           ... sequence output : DONE!")
-    end
 
     print("------------------------------------------------------------")
     print("------------------------------------------------------------")
     print("[1;32m FINISH! [0m ")
     print(" Please check the .itp and .gro files.")
     print("============================================================")
-end
 
 # =============================
 # Parsing Commandline Arguments
