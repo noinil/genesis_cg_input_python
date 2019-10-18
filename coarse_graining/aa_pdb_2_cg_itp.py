@@ -177,10 +177,10 @@ ATOM_NAME_SET_RS = ("C5'", "C4'", "C3'", "C2'", "C1'", "O5'", "O4'", "O3'", "O2'
 # Molecule Types
 # ==============
 
-MOL_DNA     = 1
-MOL_RNA     = 2
-MOL_PROTEIN = 3
-MOL_OTHER   = 4
+MOL_DNA     = 0
+MOL_RNA     = 1
+MOL_PROTEIN = 2
+MOL_OTHER   = 3
 MOL_TYPE_LIST = ["DNA", "RNA", "protein", "other", "unknown"]
 
 # ===============================
@@ -383,8 +383,13 @@ PWMCOS_FUNC_TYPE        = 1
 # --------
 
 def compute_distance(coor1, coor2):
-    d = coor1 - coor2
-    return np.linalg.norm(d)
+    # d = coor1 - coor2
+    # return np.linalg.norm(d)
+    dx = coor1[0] - coor2[0]
+    dy = coor1[1] - coor2[1]
+    dz = coor1[2] - coor2[2]
+    dist = (dx * dx + dy * dy + dz * dz) ** 0.5
+    return dist
 
 # -----
 # Angle
@@ -486,28 +491,28 @@ def is_protein_anion(atom_name, res_name):
     return False
 
 def is_protein_hb_pair(atom_name_1, res_name_1, atom_name_2, res_name_2):
-    if  is_protein_hb_acceptor(atom_name_1) and \
-        is_protein_hb_donor(atom_name_2, res_name_2):
+    if  is_protein_hb_acceptor  (atom_name_1) and \
+        is_protein_hb_donor     (atom_name_2, res_name_2):
         return True
-    elif is_protein_hb_acceptor(atom_name_2) and \
-         is_protein_hb_donor(atom_name_1, res_name_1):
+    elif is_protein_hb_acceptor (atom_name_2) and \
+         is_protein_hb_donor    (atom_name_1, res_name_1):
         return True
     return False
 
 def is_protein_sb_pair(atom_name_1, res_name_1, atom_name_2, res_name_2):
-    if  is_protein_cation(atom_name_1, res_name_1) and \
-        is_protein_anion(atom_name_2,  res_name_2):
+    if  is_protein_cation  (atom_name_1, res_name_1) and \
+        is_protein_anion   (atom_name_2, res_name_2):
         return True
-    elif is_protein_cation(atom_name_2, res_name_2) and \
-         is_protein_anion(atom_name_1,  res_name_1):
+    elif is_protein_cation (atom_name_2, res_name_2) and \
+         is_protein_anion  (atom_name_1, res_name_1):
         return True
     return False
 
-def is_protein_nonsb_charge_pair(atom_name_1, res_name_1, atom_name_2, res_name_2)
-    if  is_protein_cation(atom_name_1, res_name_1) or \
-        is_protein_anion(atom_name_1,  res_name_1) or \
-        is_protein_cation(atom_name_2, res_name_2) or \
-        is_protein_anion(atom_name_2,  res_name_2):
+def is_protein_nonsb_charge_pair(atom_name_1, res_name_1, atom_name_2, res_name_2):
+    if is_protein_cation (atom_name_1, res_name_1 ) or \
+       is_protein_anion  (atom_name_1, res_name_1 ) or \
+       is_protein_cation (atom_name_2, res_name_2 ) or \
+       is_protein_anion  (atom_name_2, res_name_2 ):
         return True
     return False
 
@@ -538,7 +543,7 @@ def count_aicg_atomic_contact(resid1, resid2, res_name_1, res_name_2, atom_names
         coor_1 = atom_coors[i, :]
         for j in resid2.atoms:
             atom_name_2     = atom_names[j]
-            if atom_name_2[0] == 'H'
+            if atom_name_2[0] == 'H':
                 continue
             coor_2          = atom_coors[j, :]
             dist_12         = compute_distance(coor_1, coor_2)
@@ -590,7 +595,6 @@ def count_aicg_atomic_contact(resid1, resid2, res_name_1, res_name_2, atom_names
                             contact_count[AICG_ITYPE_SB_QX] += 1
                         else:
                             contact_count[AICG_ITYPE_SB_DA] += 1
-                        end
                     elif is_nonsb_charge:
                         contact_count[AICG_ITYPE_SB_QX] += 1
                     elif atom_name_1[0] == 'C' or atom_name_2[0] == 'C':
@@ -675,7 +679,7 @@ def compute_RNA_Go_contact(resid1, resid2, atom_names, atom_coors):
             dist_12 = compute_distance(coor_1, coor_2)
             if dist_12 < RNA_GO_ATOMIC_CUTOFF and is_RNA_hydrogen_bond(atom_name_1[0], atom_name_2[0]):
                 hb_count += 1
-            if dist_12 < min_dist
+            if dist_12 < min_dist:
                 min_dist = dist_12
     return (min_dist, hb_count)
 
@@ -709,7 +713,7 @@ def is_protein_RNA_go_contact(resid1, resid2, atom_names, atom_coors):
         if atom_name_1[0] == 'H':
             continue
         coor_1 = atom_coors[i, :]
-        for j in resid2.atoms
+        for j in resid2.atoms:
             atom_name_2 = atom_names[j]
             if atom_name_2[0] == 'H':
                 continue
@@ -797,7 +801,7 @@ def pdb_2_top(args):
     pdb_name                = args.pdb
     protein_charge_filename = args.respac
     scale_scheme            = args.aicg_scale
-    gen_3spn_itp            = args.3spn_param
+    gen_3spn_itp            = args.dna_3spn_param
     gen_pwmcos_itp          = args.pwmcos
     pwmcos_gamma            = args.pwmcos_scale
     pwmcos_epsil            = args.pwmcos_shift
@@ -827,7 +831,7 @@ def pdb_2_top(args):
     # ================
     i_step += 1
     print("============================================================")
-    print("> Step {0>2d}: open PDB file.".format(i_step))
+    print("> Step {0:>2d}: open PDB file.".format(i_step))
 
     aa_pdb_lines = []
 
@@ -860,7 +864,7 @@ def pdb_2_top(args):
             if len(tmp_res_atoms) > 0:
                 aa_residues.append(AAResidue(residue_name, tmp_res_atoms[:]))
                 tmp_res_atoms = []
-            if len(tmp_chain_res) > 0
+            if len(tmp_chain_res) > 0:
                 aa_chains.append(AAChain(chain_id, tmp_chain_res[:]))
                 tmp_chain_res = []
             continue
@@ -878,22 +882,22 @@ def pdb_2_top(args):
         aa_atom_name [i_atom - 1 ] = atom_name
         aa_coor      [i_atom - 1 ] = [ coor_x, coor_y, coor_z ]
 
-        if residue_serial != curr_resid
+        if residue_serial != curr_resid:
             i_resid += 1
-            tmp_chain_res.append(i_resid)
+            tmp_chain_res.append(i_resid - 1)
             curr_resid = residue_serial
-            if len(tmp_res_atoms) > 0
+            if len(tmp_res_atoms) > 0:
                 aa_residues.append(AAResidue(curr_rname, tmp_res_atoms[:]))
                 tmp_res_atoms = []
             curr_rname = residue_name
-        tmp_res_atoms.append(i_atom)
+        tmp_res_atoms.append(i_atom - 1)
 
     aa_num_residue = len(aa_residues)
     aa_num_chain   = len(aa_chains)
 
-    print("          > Number of atoms:    {0:>10d}".format(aa_num_atom))
+    print("          > Number of atoms   : {0:>10d}".format(aa_num_atom))
     print("          > Number of residues: {0:>10d}".format(aa_num_residue))
-    print("          > Number of chains:   {0:>10d}".format(aa_num_chain))
+    print("          > Number of chains  : {0:>10d}".format(aa_num_chain))
 
     # ===============================
     # Step 2: find out molecule types
@@ -907,7 +911,7 @@ def pdb_2_top(args):
     cg_chain_mol_types = np.zeros(aa_num_chain, dtype=int)
     cg_chain_length    = np.zeros(aa_num_chain, dtype=int)
 
-    for i_chain range( aa_num_chain ):
+    for i_chain in range( aa_num_chain ):
         chain = aa_chains[i_chain]
         mol_type = -1
         for i_res in chain.residues:
@@ -941,12 +945,12 @@ def pdb_2_top(args):
             n_particles = 0
         cg_chain_length[i_chain] = n_particles
         cg_num_particles += n_particles
-        print("          > Chain {0:>3d} | {1:>7} \n".format( i_chain, MOL_TYPE_LIST[ mol_type ] ))
+        print("          > Chain {0:>3d} | {1:>7}".format( i_chain + 1, MOL_TYPE_LIST[ mol_type ] ))
 
     print("------------------------------------------------------------")
-    print("          In total: {0:>5d} protein chains,\n".format(num_chain_pro))
-    print("                    {0:>5d} DNA    strands,\n".format(num_chain_DNA))
-    print("                    {0:>5d} RNA    strands.\n".format(num_chain_RNA))
+    print("          In total: {0:>5d} protein chains,".format(num_chain_pro))
+    print("                    {0:>5d} DNA    strands,".format(num_chain_DNA))
+    print("                    {0:>5d} RNA    strands.".format(num_chain_RNA))
 
     # ===========================
     # Step 3: Assign CG particles
@@ -1001,7 +1005,7 @@ def pdb_2_top(args):
                     else:
                         cg_DB_idx.append(i_atom)
                 i_resi += 1
-                if i_local_index > 1:
+                if i_local_index > 0:
                     i_bead += 1
                     cg_residues.append(CGResidue(i_resi, res_name, "DP", cg_DP_idx[:]))
                 i_bead += 1
@@ -1025,7 +1029,7 @@ def pdb_2_top(args):
                     else:
                         cg_RB_idx.append(i_atom)
                 i_resi += 1
-                if i_local_index > 1:
+                if i_local_index > 0:
                     i_bead += 1
                     cg_residues.append( CGResidue(i_resi, res_name, "RP", cg_RP_idx[:]))
                 i_bead += 1
@@ -1038,7 +1042,7 @@ def pdb_2_top(args):
 
     chain_info_str = "          > Chain {0:>3d} | # particles: {1:>5d} | {2:>5d} -- {3:>5d} "
     for i_chain in range(aa_num_chain):
-        print(chain_info_str.format(i_chain,
+        print(chain_info_str.format(i_chain + 1,
                                     cg_chain_length[i_chain],
                                     cg_chains[i_chain].first + 1,
                                     cg_chains[i_chain].last  + 1))
@@ -1288,7 +1292,7 @@ def pdb_2_top(args):
 
             for i_res in range(chain.first, chain.last - 3):
                 coor_cai = cg_bead_coor[i_res]
-                for j_res in range(i_res + 4, chain.last):
+                for j_res in range(i_res + 4, chain.last + 1):
                     coor_caj = cg_bead_coor[j_res]
                     if is_protein_go_contact(cg_residues[i_res], cg_residues[j_res], aa_atom_name, aa_coor):
                         native_dist = compute_distance(coor_cai, coor_caj)
@@ -1315,46 +1319,47 @@ def pdb_2_top(args):
         print(">           ... intra-molecular contacts: DONE!")
 
         # inter-molecular ( protein-protein ) contacts
-        print("        Calculating inter-molecular contacts...")
-        for i_chain in tqdm( range(aa_num_chain - 1) ):
-            chain1 = cg_chains[i_chain]
+        if num_chain_pro > 1:
+            print("        Calculating inter-molecular contacts...")
+            for i_chain in tqdm( range(aa_num_chain - 1) ):
+                chain1 = cg_chains[i_chain]
 
-            if chain1.moltype != MOL_PROTEIN:
-                continue
-
-            for j_chain in range(i_chain + 1, aa_num_chain):
-                chain2 = cg_chains[j_chain]
-
-                if chain2.moltype != MOL_PROTEIN:
+                if chain1.moltype != MOL_PROTEIN:
                     continue
 
-                for i_res in range(chain1.first, chain1.last + 1):
-                    coor_cai = cg_bead_coor[i_res]
-                    for j_res in range(chain2.first, chain2.last + 1):
-                        coor_caj = cg_bead_coor[j_res]
-                        if is_protein_go_contact(cg_residues[i_res], cg_residues[j_res], aa_atom_name, aa_coor):
-                            native_dist = compute_distance(coor_cai, coor_caj)
-                            num_contact += 1
-                            top_cg_pro_aicg_contact.append((i_res, j_res, native_dist))
+                for j_chain in range(i_chain + 1, aa_num_chain):
+                    chain2 = cg_chains[j_chain]
 
-                            # count AICG2+ atomic contact
-                            contact_counts = count_aicg_atomic_contact(cg_residues   [i_res],
-                                                                       cg_residues   [j_res],
-                                                                       cg_resid_name [i_res],
-                                                                       cg_resid_name [j_res],
-                                                                       aa_atom_name,
-                                                                       aa_coor)
+                    if chain2.moltype != MOL_PROTEIN:
+                        continue
 
-                            # calculate AICG2+ pairwise energy
-                            e_local = np.dot(AICG_PAIRWISE_ENERGY, contact_counts)
-                            if e_local > AICG_ENE_UPPER_LIM:
-                                e_local = AICG_ENE_UPPER_LIM
-                            if e_local < AICG_ENE_LOWER_LIM:
-                                e_local = AICG_ENE_LOWER_LIM
-                            e_ground_contact += e_local
-                            num_contact      += 1
-                            param_cg_pro_e_contact.append( e_local)
-        print(">           ... inter-molecular contacts: DONE!")
+                    for i_res in range(chain1.first, chain1.last + 1):
+                        coor_cai = cg_bead_coor[i_res]
+                        for j_res in range(chain2.first, chain2.last + 1):
+                            coor_caj = cg_bead_coor[j_res]
+                            if is_protein_go_contact(cg_residues[i_res], cg_residues[j_res], aa_atom_name, aa_coor):
+                                native_dist = compute_distance(coor_cai, coor_caj)
+                                num_contact += 1
+                                top_cg_pro_aicg_contact.append((i_res, j_res, native_dist))
+
+                                # count AICG2+ atomic contact
+                                contact_counts = count_aicg_atomic_contact(cg_residues   [i_res],
+                                                                           cg_residues   [j_res],
+                                                                           cg_resid_name [i_res],
+                                                                           cg_resid_name [j_res],
+                                                                           aa_atom_name,
+                                                                           aa_coor)
+
+                                # calculate AICG2+ pairwise energy
+                                e_local = np.dot(AICG_PAIRWISE_ENERGY, contact_counts)
+                                if e_local > AICG_ENE_UPPER_LIM:
+                                    e_local = AICG_ENE_UPPER_LIM
+                                if e_local < AICG_ENE_LOWER_LIM:
+                                    e_local = AICG_ENE_LOWER_LIM
+                                e_ground_contact += e_local
+                                num_contact      += 1
+                                param_cg_pro_e_contact.append( e_local)
+            print(">           ... inter-molecular contacts: DONE!")
 
         # normalize
         e_ground_contact /= num_contact
@@ -1545,7 +1550,7 @@ def pdb_2_top(args):
                 cg_chain_id    [i_res] = i_chain
                 if bead_name == "RP":
                     for i_atom in cg_residues[i_res].atoms:
-                        if aa_atom_name[i_atom][1] == 'P':
+                        if aa_atom_name[i_atom][0] == 'P':
                             bead_coor = aa_coor[i_atom]
                 elif bead_name == "RS":
                     total_mass = 0
@@ -1707,40 +1712,41 @@ def pdb_2_top(args):
                         contact_type = cg_bead_name[i_res][-1] * cg_bead_name[j_res][-1]
                         top_cg_RNA_other_contact.append((i_res, j_res, native_dist, RNA_PAIR_EPSILON_OTHER[contact_type]))
  
-        print( "        Calculating inter-molecular contacts..." )
-        for i_chain in tqdm( range(aa_num_chain) ):
-            chain_1 = cg_chains[i_chain]
-            if chain_1.moltype != MOL_RNA:
-                continue
-            for i_res in range(chain_1.first, chain_1.last + 1):
-                if cg_bead_name[i_res] == "RP":
+        if num_chain_RNA > 1:
+            print( "        Calculating inter-molecular contacts..." )
+            for i_chain in tqdm( range(aa_num_chain) ):
+                chain_1 = cg_chains[i_chain]
+                if chain_1.moltype != MOL_RNA:
                     continue
-                coor_i = cg_bead_coor[i_res]
-                for j_chain in range(i_chain + 1, aa_num_chain):
-                    chain_2 = cg_chains[j_chain]
-                    if chain_2.moltype != MOL_RNA:
+                for i_res in range(chain_1.first, chain_1.last + 1):
+                    if cg_bead_name[i_res] == "RP":
                         continue
-                    for j_res in range(chain_2.first, chain_2.last + 1):
-                        if cg_bead_name[j_res] == "RP":
+                    coor_i = cg_bead_coor[i_res]
+                    for j_chain in range(i_chain + 1, aa_num_chain):
+                        chain_2 = cg_chains[j_chain]
+                        if chain_2.moltype != MOL_RNA:
                             continue
-                        coor_j = cg_bead_coor[j_res]
-                        native_dist = compute_distance(coor_i, coor_j)
-                        adist, nhb  = compute_RNA_Go_contact(cg_residues[i_res],
-                                                             cg_residues[j_res],
-                                                             aa_atom_name,
-                                                             aa_coor)
-                        if adist > RNA_GO_ATOMIC_CUTOFF:
-                            continue
-                        if cg_bead_name[i_res] == "RB" and cg_bead_name[j_res] == "RB":
-                            if nhb == 2:
-                                top_cg_RNA_base_pair.append((i_res, j_res, native_dist, RNA_BPAIR_EPSILON_2HB))
-                            elif nhb >= 3:
-                                top_cg_RNA_base_pair.append((i_res, j_res, native_dist, RNA_BPAIR_EPSILON_3HB))
+                        for j_res in range(chain_2.first, chain_2.last + 1):
+                            if cg_bead_name[j_res] == "RP":
+                                continue
+                            coor_j = cg_bead_coor[j_res]
+                            native_dist = compute_distance(coor_i, coor_j)
+                            adist, nhb  = compute_RNA_Go_contact(cg_residues[i_res],
+                                                                 cg_residues[j_res],
+                                                                 aa_atom_name,
+                                                                 aa_coor)
+                            if adist > RNA_GO_ATOMIC_CUTOFF:
+                                continue
+                            if cg_bead_name[i_res] == "RB" and cg_bead_name[j_res] == "RB":
+                                if nhb == 2:
+                                    top_cg_RNA_base_pair.append((i_res, j_res, native_dist, RNA_BPAIR_EPSILON_2HB))
+                                elif nhb >= 3:
+                                    top_cg_RNA_base_pair.append((i_res, j_res, native_dist, RNA_BPAIR_EPSILON_3HB))
+                                else:
+                                    top_cg_RNA_other_contact.append((i_res, j_res, native_dist, RNA_PAIR_EPSILON_OTHER["BB"]))
                             else:
-                                top_cg_RNA_other_contact.append((i_res, j_res, native_dist, RNA_PAIR_EPSILON_OTHER["BB"]))
-                        else:
-                            contact_type = cg_bead_name[i_res][-1] * cg_bead_name[j_res][-1]
-                            top_cg_RNA_other_contact.append((i_res, j_res, native_dist, RNA_PAIR_EPSILON_OTHER[contact_type]))
+                                contact_type = cg_bead_name[i_res][-1] * cg_bead_name[j_res][-1]
+                                top_cg_RNA_other_contact.append((i_res, j_res, native_dist, RNA_PAIR_EPSILON_OTHER[contact_type]))
  
         print(">           ... DONE!")
         print("------------------------------------------------------------")
@@ -1865,14 +1871,14 @@ def pdb_2_top(args):
                         theta2 = compute_vec_angle(vec0, vec2)
                         theta3 = compute_vec_angle(vec0, vec3)
 
-                        push!(pwmcos_native_contacts, (i_res - chain_pro.first + 1,
+                        pwmcos_native_contacts.append((i_res - chain_pro.first + 1,
                                                        cg_resid_index[j_res],
                                                        r0,
                                                        theta1,
                                                        theta2,
                                                        theta3))
 
-                        if do_debug
+                        if do_debug:
                             print("PWMcos | pro ===> ", i_res - chain_pro.first + 1,
                                     " DNA ===> ", j_res, " : ", cg_resid_index[j_res],
                                     " r0 = ", r0,
@@ -2075,7 +2081,7 @@ def pdb_2_top(args):
         itp_file.write(itp_atm_head)
         itp_file.write(itp_atm_comm)
         for i_bead in range(cg_num_particles):
-            itp_file.write(itp_atm_line.format(i_bead,
+            itp_file.write(itp_atm_line.format(i_bead + 1,
                                                cg_bead_type   [i_bead],
                                                cg_resid_index [i_bead],
                                                cg_resid_name  [i_bead],
@@ -2095,26 +2101,24 @@ def pdb_2_top(args):
 
             # AICG2+ bonds
             for i_bond in range(len(top_cg_pro_bonds)):
-                itp_file.write(
-                         itp_bnd_line.format(
-                         top_cg_pro_bonds[i_bond][0],
-                         top_cg_pro_bonds[i_bond][0] + 1,
-                         AICG_BOND_FUNC_TYPE,
-                         top_cg_pro_bonds[i_bond][1] * 0.1,
-                         AICG_BOND_K))
+                itp_file.write(itp_bnd_line.format(top_cg_pro_bonds[i_bond][0] + 1,
+                                                   top_cg_pro_bonds[i_bond][0] + 2,
+                                                   AICG_BOND_FUNC_TYPE,
+                                                   top_cg_pro_bonds[i_bond][1] * 0.1,
+                                                   AICG_BOND_K))
 
             # 3SPN.2C bonds
             for i_bond in range(len(top_cg_DNA_bonds)):
-                itp_file.write(itp_bnd_line.format(top_cg_DNA_bonds[i_bond][0],
-                                                   top_cg_DNA_bonds[i_bond][1],
+                itp_file.write(itp_bnd_line.format(top_cg_DNA_bonds[i_bond][0] + 1,
+                                                   top_cg_DNA_bonds[i_bond][1] + 1,
                                                    DNA3SPN_BOND_FUNC4_TYPE,
                                                    top_cg_DNA_bonds[i_bond][2] * 0.1,
                                                    DNA3SPN_BOND_K_2))
 
             # Structure-based RNA bonds
             for i_bond in range(len(top_cg_RNA_bonds)):
-                itp_file.write(itp_bnd_line.format(top_cg_RNA_bonds[i_bond][0],
-                                                   top_cg_RNA_bonds[i_bond][1],
+                itp_file.write(itp_bnd_line.format(top_cg_RNA_bonds[i_bond][0] + 1,
+                                                   top_cg_RNA_bonds[i_bond][1] + 1,
                                                    RNA_BOND_FUNC_TYPE,
                                                    top_cg_RNA_bonds[i_bond][2] * 0.1,
                                                    top_cg_RNA_bonds[i_bond][3]))
@@ -2130,9 +2134,9 @@ def pdb_2_top(args):
             itp_file.write(itp_13_head)
             itp_file.write(itp_13_comm)
             for i_13 in range(len(top_cg_pro_aicg13)):
-                itp_file.write(itp_13_line.format(top_cg_pro_aicg13[i_13][0],
-                                                  top_cg_pro_aicg13[i_13][0] + 1,
+                itp_file.write(itp_13_line.format(top_cg_pro_aicg13[i_13][0] + 1,
                                                   top_cg_pro_aicg13[i_13][0] + 2,
+                                                  top_cg_pro_aicg13[i_13][0] + 3,
                                                   AICG_ANG_G_FUNC_TYPE,
                                                   top_cg_pro_aicg13[i_13][1] * 0.1,
                                                   param_cg_pro_e_13[i_13] * CAL2JOU,
@@ -2144,9 +2148,9 @@ def pdb_2_top(args):
             itp_file.write(itp_ang_f_head)
             itp_file.write(itp_ang_f_comm)
             for i_ang in range(len(top_cg_pro_angles)):
-                itp_file.write(itp_ang_f_line.format(top_cg_pro_angles[i_ang],
-                                                     top_cg_pro_angles[i_ang] + 1,
+                itp_file.write(itp_ang_f_line.format(top_cg_pro_angles[i_ang] + 1,
                                                      top_cg_pro_angles[i_ang] + 2,
+                                                     top_cg_pro_angles[i_ang] + 3,
                                                      AICG_ANG_F_FUNC_TYPE))
             itp_file.write("\n")
 
@@ -2155,9 +2159,9 @@ def pdb_2_top(args):
             itp_file.write(itp_ang_head)
             itp_file.write(itp_ang_comm)
             for i_ang in range(len(top_cg_DNA_angles)):
-                itp_file.write(itp_ang_line.format(top_cg_DNA_angles[i_ang][0],
-                                                   top_cg_DNA_angles[i_ang][1],
-                                                   top_cg_DNA_angles[i_ang][2],
+                itp_file.write(itp_ang_line.format(top_cg_DNA_angles[i_ang][0] + 1,
+                                                   top_cg_DNA_angles[i_ang][1] + 1,
+                                                   top_cg_DNA_angles[i_ang][2] + 1,
                                                    DNA3SPN_ANG_FUNC_TYPE,
                                                    top_cg_DNA_angles[i_ang][3],
                                                    top_cg_DNA_angles[i_ang][4]))
@@ -2168,9 +2172,9 @@ def pdb_2_top(args):
             itp_file.write(itp_ang_head)
             itp_file.write(itp_ang_comm)
             for i_ang in range(len(top_cg_RNA_angles)):
-                itp_file.write(itp_ang_line.format(top_cg_RNA_angles[i_ang][0],
-                                                   top_cg_RNA_angles[i_ang][1],
-                                                   top_cg_RNA_angles[i_ang][2],
+                itp_file.write(itp_ang_line.format(top_cg_RNA_angles[i_ang][0] + 1,
+                                                   top_cg_RNA_angles[i_ang][1] + 1,
+                                                   top_cg_RNA_angles[i_ang][2] + 1,
                                                    RNA_ANG_FUNC_TYPE,
                                                    top_cg_RNA_angles[i_ang][3],
                                                    top_cg_RNA_angles[i_ang][4]))
@@ -2186,10 +2190,10 @@ def pdb_2_top(args):
             itp_file.write(itp_dih_G_head)
             itp_file.write(itp_dih_G_comm)
             for i_dih in range(len(top_cg_pro_aicg14)):
-                itp_file.write(itp_dih_G_line.format(top_cg_pro_aicg14[i_dih][0],
-                                                     top_cg_pro_aicg14[i_dih][0] + 1,
+                itp_file.write(itp_dih_G_line.format(top_cg_pro_aicg14[i_dih][0] + 1,
                                                      top_cg_pro_aicg14[i_dih][0] + 2,
                                                      top_cg_pro_aicg14[i_dih][0] + 3,
+                                                     top_cg_pro_aicg14[i_dih][0] + 4,
                                                      AICG_DIH_G_FUNC_TYPE,
                                                      top_cg_pro_aicg14[i_dih][1],
                                                      param_cg_pro_e_14[i_dih] * CAL2JOU,
@@ -2201,10 +2205,10 @@ def pdb_2_top(args):
             itp_file.write(itp_dih_F_head)
             itp_file.write(itp_dih_F_comm)
             for i_dih in range(len(top_cg_pro_dihedrals)):
-                itp_file.write(itp_dih_F_line.format(top_cg_pro_dihedrals[i_dih],
-                                                     top_cg_pro_dihedrals[i_dih] + 1,
+                itp_file.write(itp_dih_F_line.format(top_cg_pro_dihedrals[i_dih] + 1,
                                                      top_cg_pro_dihedrals[i_dih] + 2,
                                                      top_cg_pro_dihedrals[i_dih] + 3,
+                                                     top_cg_pro_dihedrals[i_dih] + 4,
                                                      AICG_DIH_F_FUNC_TYPE))
             itp_file.write("\n")
 
@@ -2213,10 +2217,10 @@ def pdb_2_top(args):
             itp_file.write(itp_dih_G_head)
             itp_file.write(itp_dih_G_comm)
             for i_dih in range(len(top_cg_DNA_dih_Gaussian)):
-                itp_file.write(itp_dih_G_line.format(top_cg_DNA_dih_Gaussian[i_dih][0],
-                                                     top_cg_DNA_dih_Gaussian[i_dih][1],
-                                                     top_cg_DNA_dih_Gaussian[i_dih][2],
-                                                     top_cg_DNA_dih_Gaussian[i_dih][3],
+                itp_file.write(itp_dih_G_line.format(top_cg_DNA_dih_Gaussian[i_dih][0] + 1,
+                                                     top_cg_DNA_dih_Gaussian[i_dih][1] + 1,
+                                                     top_cg_DNA_dih_Gaussian[i_dih][2] + 1,
+                                                     top_cg_DNA_dih_Gaussian[i_dih][3] + 1,
                                                      DNA3SPN_DIH_G_FUNC_TYPE,
                                                      top_cg_DNA_dih_Gaussian[i_dih][4],
                                                      DNA3SPN_DIH_G_K,
@@ -2228,10 +2232,10 @@ def pdb_2_top(args):
             itp_file.write(itp_dih_P_head)
             itp_file.write(itp_dih_P_comm)
             for i_dih in range(len(top_cg_DNA_dih_periodic)):
-                itp_file.write(itp_dih_P_line.format(top_cg_DNA_dih_periodic[i_dih][0],
-                                                     top_cg_DNA_dih_periodic[i_dih][1],
-                                                     top_cg_DNA_dih_periodic[i_dih][2],
-                                                     top_cg_DNA_dih_periodic[i_dih][3],
+                itp_file.write(itp_dih_P_line.format(top_cg_DNA_dih_periodic[i_dih][0] + 1,
+                                                     top_cg_DNA_dih_periodic[i_dih][1] + 1,
+                                                     top_cg_DNA_dih_periodic[i_dih][2] + 1,
+                                                     top_cg_DNA_dih_periodic[i_dih][3] + 1,
                                                      DNA3SPN_DIH_P_FUNC_TYPE,
                                                      top_cg_DNA_dih_periodic[i_dih][4],
                                                      DNA3SPN_DIH_P_K,
@@ -2243,19 +2247,19 @@ def pdb_2_top(args):
             itp_file.write(itp_dih_P_head)
             itp_file.write(itp_dih_P_comm)
             for i_dih in range(len(top_cg_RNA_dihedrals)):
-                itp_file.write(itp_dih_P_line.format(top_cg_RNA_dihedrals[i_dih][0],
-                                                     top_cg_RNA_dihedrals[i_dih][1],
-                                                     top_cg_RNA_dihedrals[i_dih][2],
-                                                     top_cg_RNA_dihedrals[i_dih][3],
+                itp_file.write(itp_dih_P_line.format(top_cg_RNA_dihedrals[i_dih][0] + 1,
+                                                     top_cg_RNA_dihedrals[i_dih][1] + 1,
+                                                     top_cg_RNA_dihedrals[i_dih][2] + 1,
+                                                     top_cg_RNA_dihedrals[i_dih][3] + 1,
                                                      RNA_DIH_FUNC_TYPE,
                                                      top_cg_RNA_dihedrals[i_dih][4] - 180,
                                                      top_cg_RNA_dihedrals[i_dih][5],
                                                      1))
             for i_dih in range(len(top_cg_RNA_dihedrals)):
-                itp_file.write(itp_dih_P_line.format(top_cg_RNA_dihedrals[i_dih][0],
-                                                     top_cg_RNA_dihedrals[i_dih][1],
-                                                     top_cg_RNA_dihedrals[i_dih][2],
-                                                     top_cg_RNA_dihedrals[i_dih][3],
+                itp_file.write(itp_dih_P_line.format(top_cg_RNA_dihedrals[i_dih][0] + 1,
+                                                     top_cg_RNA_dihedrals[i_dih][1] + 1,
+                                                     top_cg_RNA_dihedrals[i_dih][2] + 1,
+                                                     top_cg_RNA_dihedrals[i_dih][3] + 1,
                                                      RNA_DIH_FUNC_TYPE,
                                                      top_cg_RNA_dihedrals[i_dih][4] * 3 - 180,
                                                      top_cg_RNA_dihedrals[i_dih][5] * 0.5,
@@ -2272,32 +2276,32 @@ def pdb_2_top(args):
             itp_file.write(itp_contact_head)
             itp_file.write(itp_contact_comm)
             for i_c in range(len(top_cg_pro_aicg_contact)):
-                itp_file.write(itp_contact_line.format(top_cg_pro_aicg_contact[i_c][0],
-                                                       top_cg_pro_aicg_contact[i_c][1],
+                itp_file.write(itp_contact_line.format(top_cg_pro_aicg_contact[i_c][0] + 1,
+                                                       top_cg_pro_aicg_contact[i_c][1] + 1,
                                                        AICG_CONTACT_FUNC_TYPE,
                                                        top_cg_pro_aicg_contact[i_c][2] * 0.1,
                                                        param_cg_pro_e_contact[i_c] * CAL2JOU))
             itp_file.write("\n")
 
         # write RNA Go-type native contacts
-        if num_rna_contacts > 0:
+        if len(top_cg_RNA_base_stack) + len(top_cg_RNA_base_pair) + len(top_cg_RNA_other_contact) > 0:
             itp_file.write(itp_contact_head)
             itp_file.write(itp_contact_comm)
             for i_c in range(len(top_cg_RNA_base_stack)):
-                itp_file.write(itp_contact_line.format(top_cg_RNA_base_stack[i_c][0],
-                                                       top_cg_RNA_base_stack[i_c][1],
+                itp_file.write(itp_contact_line.format(top_cg_RNA_base_stack[i_c][0] + 1,
+                                                       top_cg_RNA_base_stack[i_c][1] + 1,
                                                        RNA_CONTACT_FUNC_TYPE,
                                                        top_cg_RNA_base_stack[i_c][2] * 0.1,
                                                        top_cg_RNA_base_stack[i_c][3] * CAL2JOU))
             for i_c in range(len(top_cg_RNA_base_pair)):
-                itp_file.write(itp_contact_line.format(top_cg_RNA_base_pair[i_c][0],
-                                                       top_cg_RNA_base_pair[i_c][1],
+                itp_file.write(itp_contact_line.format(top_cg_RNA_base_pair[i_c][0] + 1,
+                                                       top_cg_RNA_base_pair[i_c][1] + 1,
                                                        RNA_CONTACT_FUNC_TYPE,
                                                        top_cg_RNA_base_pair[i_c][2] * 0.1,
                                                        top_cg_RNA_base_pair[i_c][3] * CAL2JOU))
             for i_c in range(len(top_cg_RNA_other_contact)):
-                itp_file.write(itp_contact_line.format(top_cg_RNA_other_contact[i_c][0],
-                                                       top_cg_RNA_other_contact[i_c][1],
+                itp_file.write(itp_contact_line.format(top_cg_RNA_other_contact[i_c][0] + 1,
+                                                       top_cg_RNA_other_contact[i_c][1] + 1,
                                                        RNA_CONTACT_FUNC_TYPE,
                                                        top_cg_RNA_other_contact[i_c][2] * 0.1,
                                                        top_cg_RNA_other_contact[i_c][3] * CAL2JOU))
@@ -2308,8 +2312,8 @@ def pdb_2_top(args):
             itp_file.write(itp_contact_head)
             itp_file.write(itp_contact_comm)
             for i_c in range(len(top_cg_pro_RNA_contact)):
-                itp_file.write(itp_contact_line.format(top_cg_pro_RNA_contact[i_c][0],
-                                                       top_cg_pro_RNA_contact[i_c][1],
+                itp_file.write(itp_contact_line.format(top_cg_pro_RNA_contact[i_c][0] + 1,
+                                                       top_cg_pro_RNA_contact[i_c][1] + 1,
                                                        RNP_CONTACT_FUNC_TYPE,
                                                        top_cg_pro_RNA_contact[i_c][2] * 0.1,
                                                        top_cg_pro_RNA_contact[i_c][3] * CAL2JOU))
@@ -2325,23 +2329,23 @@ def pdb_2_top(args):
             itp_file.write(itp_exc_head)
             itp_file.write(itp_exc_comm)
             for i_c in range(len(top_cg_pro_aicg_contact)):
-                itp_file.write(itp_exc_line.format(top_cg_pro_aicg_contact[i_c][0],
-                                                   top_cg_pro_aicg_contact[i_c][1]))
+                itp_file.write(itp_exc_line.format(top_cg_pro_aicg_contact[i_c][0] + 1,
+                                                   top_cg_pro_aicg_contact[i_c][1] + 1))
             itp_file.write("\n")
 
         # write RNA exclusion list
-        if num_rna_contacts > 0:
+        if len(top_cg_RNA_base_stack) + len(top_cg_RNA_base_pair) + len(top_cg_RNA_other_contact) > 0:
             itp_file.write(itp_exc_head)
             itp_file.write(itp_exc_comm)
             for i_c in range(len(top_cg_RNA_base_stack)):
-                itp_file.write(itp_exc_line.format(top_cg_RNA_base_stack[i_c][0],
-                                                   top_cg_RNA_base_stack[i_c][1]))
+                itp_file.write(itp_exc_line.format(top_cg_RNA_base_stack[i_c][0] + 1,
+                                                   top_cg_RNA_base_stack[i_c][1] + 1))
             for i_c in range(len(top_cg_RNA_base_pair)):
-                itp_file.write(itp_exc_line.format(top_cg_RNA_base_pair[i_c][0],
-                                                   top_cg_RNA_base_pair[i_c][1]))
+                itp_file.write(itp_exc_line.format(top_cg_RNA_base_pair[i_c][0] + 1,
+                                                   top_cg_RNA_base_pair[i_c][1] + 1))
             for i_c in range(len(top_cg_RNA_other_contact)):
-                itp_file.write(itp_exc_line.format(top_cg_RNA_other_contact[i_c][0],
-                                                   top_cg_RNA_other_contact[i_c][1]))
+                itp_file.write(itp_exc_line.format(top_cg_RNA_other_contact[i_c][0] + 1,
+                                                   top_cg_RNA_other_contact[i_c][1] + 1))
             itp_file.write("\n")
 
         # write protein-RNA exclusion contacts
@@ -2349,8 +2353,8 @@ def pdb_2_top(args):
             itp_file.write(itp_exc_head)
             itp_file.write(itp_exc_comm)
             for i_c in range(len(top_cg_pro_RNA_contact)):
-                itp_file.write(itp_exc_line.format(top_cg_pro_RNA_contact[i_c][0],
-                                                   top_cg_pro_RNA_contact[i_c][1]))
+                itp_file.write(itp_exc_line.format(top_cg_pro_RNA_contact[i_c][0] + 1,
+                                                   top_cg_pro_RNA_contact[i_c][1] + 1))
             itp_file.write("\n")
 
 
@@ -2380,7 +2384,7 @@ def pdb_2_top(args):
             gro_file.write(GRO_ATOM_LINE.format(cg_resid_index [i_bead],
                                                 cg_resid_name  [i_bead],
                                                 cg_bead_name   [i_bead],
-                                                i_bead,
+                                                i_bead + 1,
                                                 cg_bead_coor   [i_bead, 0] * 0.1,
                                                 cg_bead_coor   [i_bead, 1] * 0.1,
                                                 cg_bead_coor   [i_bead, 2] * 0.1,
@@ -2540,25 +2544,25 @@ def parse_commandline():
                         help="RESPAC protein charge distribution data.")
     parser.add_argument('--aicg-scale', type=int, default=1,
                         help="Scale AICG2+ local interactions: 0) average; 1) general (default).")
-    parser.add_argument('--3spn-param', action='store_true',
+    parser.add_argument('--dna-3spn-param', action='store_true',
                         help="Generate 3SPN.2C parameters from x3DNA generated PDB structure.")
-    parser.add_argument('--pwmcos', action = 'store_True',
+    parser.add_argument('--pwmcos', action = 'store_true',
                          help = "Generate parameters for protein-DNA sequence-specific interactions.")
     parser.add_argument('--pwmcos-scale', type=float, default=1.0,
                         help = "Energy scaling factor for PWMcos.")
     parser.add_argument("--pwmcos-shift", type=float, default=0.0,
                         help = "Energy shifting factor for PWMcos.")
-    parser.add_argument("--psf", action = 'store_True',
+    parser.add_argument("--psf", action = 'store_true',
                         help = "Prepare PSF file.")
-    parser.add_argument("--cgpdb", action = 'store_True',
+    parser.add_argument("--cgpdb", action = 'store_true',
                         help = "Prepare CG PDB file.")
     parser.add_argument("-p", "--pfm", type=str, default="",
                         help = "Position frequency matrix file for protein-DNA sequence-specific interactions.")
     parser.add_argument("--patch", type=str, default="",
                         help = "Append (apply patch) to .itp file.")
-    parser.add_argument("--show-sequence", action = 'store_True',
+    parser.add_argument("--show-sequence", action = 'store_true',
                         help = "Show sequence of molecules in PDB.")
-    parser.add_argument("--debug", action = 'store_True',
+    parser.add_argument("--debug", action = 'store_true',
                         help = "DEBUG.")
 
     return parser.parse_args()
@@ -2567,7 +2571,7 @@ def parse_commandline():
 # Main
 # ====
 
-def main()
+def main():
 
     args = parse_commandline()
 
